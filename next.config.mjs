@@ -1,3 +1,4 @@
+// Minimal Next.js config (no invalid experimental options)
 /** @type {import('next').NextConfig} */
-const nextConfig = { experimental: { runtime: 'edge' } };
+const nextConfig = {};
 export default nextConfig;
