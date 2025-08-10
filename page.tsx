@@ -1,1 +1,0 @@
-export default function Home(){return(<main style={{padding:24}}><h1 style={{fontSize:28,marginBottom:8}}>Live Flights BR</h1><p>✅ Deployed on Vercel.</p><p>API endpoint: <code>/api/search</code></p></main>);}
