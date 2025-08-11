@@ -22,26 +22,13 @@ function todayPlus(days:number) {
   return d.toISOString().slice(0,10);
 }
 
-// ---------- UI atoms ----------
-const Box: React.FC<React.PropsWithChildren<{className?: string}>> = ({className='', children}) =>
-  <div className={`rounded-2xl border border-[#e5e7eb] bg-white ${className}`} style={{boxShadow:'0 1px 2px rgba(0,0,0,.04)'}}>{children}</div>;
+// ---------- tiny UI atoms (no external CSS needed) ----------
+const card: React.CSSProperties = { border:'1px solid #e5e7eb', borderRadius:16, background:'#fff', boxShadow:'0 1px 2px rgba(0,0,0,.04)' };
+const pad: React.CSSProperties = { padding:16 };
+const lbl: React.CSSProperties = { fontSize:12, color:'#6b7280', display:'block', marginBottom:6 };
+const inputBase: React.CSSProperties = { width:'100%', border:'1px solid #d1d5db', borderRadius:12, padding:'8px 10px', fontSize:14, background:'#fff' };
+const buttonPrimary: React.CSSProperties = { background:'#2563eb', color:'#fff', border:'1px solid #1d4ed8', borderRadius:14, padding:'10px 16px', fontSize:14, fontWeight:600, cursor:'pointer' };
 
-const Row: React.FC<React.PropsWithChildren<{className?: string}>> = ({className='', children}) =>
-  <div className={`flex flex-col gap-2 sm:flex-row sm:items-end ${className}`}>{children}</div>;
-
-const Label: React.FC<React.PropsWithChildren> = ({children}) =>
-  <label style={{fontSize:12, color:'#6b7280'}}>{children}</label>;
-
-const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = (p) =>
-  <input {...p} className={`w-full rounded-xl border border-[#d1d5db] px-3 py-2 focus:outline-none`} />;
-
-const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement>> = (p) =>
-  <select {...p} className="w-full rounded-xl border border-[#d1d5db] px-3 py-2 bg-white focus:outline-none" />;
-
-const Button: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement> & {variant?: 'primary'|'ghost'}> = ({variant='primary', className='', ...p}) =>
-  <button {...p} className={`rounded-2xl px-4 py-2 font-medium border ${variant==='primary'?'bg-[#2563eb] text-white border-[#1d4ed8]':'bg-white text-[#111827] border-[#e5e7eb]'} ${className}`} />;
-
-// ---------- page ----------
 export default function Page() {
   // defaults: Brazil → popular international
   const [origin, setOrigin] = useState<string>('GRU');
@@ -106,161 +93,165 @@ export default function Page() {
   useEffect(()=>{ runSearch(); /* eslint-disable-next-line */ },[]);
 
   return (
-    <main style={{minHeight:'100vh', background:'linear-gradient(#eff6ff, #fff)', color:'#111827'}}>
+    <main style={{minHeight:'100vh', background:'linear-gradient(#eff6ff, #fff)', color:'#111827', fontFamily:'ui-sans-serif, system-ui'}}>
       <div style={{maxWidth:1200, margin:'0 auto', padding:'24px 16px'}}>
         {/* header */}
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-3">
-            <div style={{height:40, width:40}} className="rounded-2xl bg-[#2563eb] text-white grid place-items-center font-bold">✈︎</div>
+        <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20, gap:12}}>
+          <div style={{display:'flex', alignItems:'center', gap:12}}>
+            <div style={{height:40, width:40, borderRadius:16, background:'#2563eb', color:'#fff', display:'grid', placeItems:'center', fontWeight:700}}>✈︎</div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-semibold">Buscador de Passagens — Brasil → Mundo</h1>
-              <p className="text-sm text-[#6b7280]">Conectado ao seu backend em <code>/api/search</code>.</p>
+              <h1 style={{fontSize:22, fontWeight:600}}>Buscador de Passagens — Brasil → Mundo</h1>
+              <p style={{fontSize:13, color:'#6b7280'}}>Conectado ao seu backend em <code>/api/search</code>.</p>
             </div>
           </div>
-          <div className="hidden sm:block text-sm text-[#6b7280]">Prov.: <strong>{provider.toUpperCase()}</strong></div>
+          <div style={{fontSize:12, color:'#6b7280'}}>Prov.: <strong>{provider.toUpperCase()}</strong></div>
         </div>
 
         {/* search box */}
-        <Box className="mb-5">
-          <div className="p-4 sm:p-5">
-            <form onSubmit={runSearch} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-              <div className="md:col-span-2">
-                <Label>Origem</Label>
-                <Select value={origin} onChange={(e)=> setOrigin(e.target.value)}>
+        <div style={{...card, marginBottom:16}}>
+          <div style={pad}>
+            <form onSubmit={runSearch} style={{display:'grid', gridTemplateColumns:'repeat(12, minmax(0,1fr))', gap:12, alignItems:'end'}}>
+              <div style={{gridColumn:'span 2'}}>
+                <span style={lbl}>Origem</span>
+                <select value={origin} onChange={(e)=> setOrigin(e.target.value)} style={inputBase as any}>
                   {BR_AIRPORTS.map(c => <option key={c} value={c}>{c}</option>)}
-                </Select>
+                </select>
               </div>
 
-              <div className="md:col-span-3">
-                <Label>Destino</Label>
-                <div className="flex gap-2">
-                  <Select
+              <div style={{gridColumn:'span 3'}}>
+                <span style={lbl}>Destino</span>
+                <div style={{display:'flex', gap:8}}>
+                  <select
                     value={anywhere ? 'ANY' : destination}
                     onChange={(e)=>{
                       const v = e.target.value;
                       if (v==='ANY') { setAnywhere(true); }
                       else { setAnywhere(false); setDestination(v); }
                     }}
+                    style={{...inputBase, flex:1}}
                   >
                     <option value="ANY">Qualquer lugar</option>
                     {POP_DESTS.map(c => <option key={c} value={c}>{c}</option>)}
-                  </Select>
+                  </select>
                 </div>
               </div>
 
-              <div className="md:col-span-2">
-                <Label>Data</Label>
-                <Input type="date" value={date} onChange={(e)=> setDate(e.target.value)} />
+              <div style={{gridColumn:'span 2'}}>
+                <span style={lbl}>Data</span>
+                <input type="date" value={date} onChange={(e)=> setDate(e.target.value)} style={inputBase}/>
               </div>
 
-              <div className="md:col-span-2">
-                <Label>Passageiros</Label>
-                <Input type="number" min={1} max={9} value={adults} onChange={(e)=> setAdults(parseInt(e.target.value || '1'))}/>
+              <div style={{gridColumn:'span 2'}}>
+                <span style={lbl}>Passageiros</span>
+                <input type="number" min={1} max={9} value={adults} onChange={(e)=> setAdults(parseInt(e.target.value || '1'))} style={inputBase}/>
               </div>
 
-              <div className="md:col-span-2">
-                <Label>Cabine</Label>
-                <Select value={cabin} onChange={(e)=> setCabin(e.target.value as Cabin)}>
+              <div style={{gridColumn:'span 2'}}>
+                <span style={lbl}>Cabine</span>
+                <select value={cabin} onChange={(e)=> setCabin(e.target.value as Cabin)} style={inputBase as any}>
                   <option value="economy">Econômica</option>
                   <option value="premium_economy">Econômica Premium</option>
                   <option value="business">Executiva</option>
                   <option value="first">Primeira</option>
-                </Select>
+                </select>
               </div>
 
-              <div className="md:col-span-1">
-                <Label>&nbsp;</Label>
-                <Button type="submit" disabled={loading} className="w-full">{loading ? 'Buscando…' : 'Buscar'}</Button>
+              <div style={{gridColumn:'span 1'}}>
+                <button type="submit" disabled={loading} style={{...buttonPrimary, width:'100%'}}>
+                  {loading ? 'Buscando…' : 'Buscar'}
+                </button>
               </div>
 
-              <div className="md:col-span-12 grid sm:grid-cols-4 gap-3 mt-2">
-                <Row>
-                  <Label>Provedor</Label>
-                  <Select value={provider} onChange={(e)=> setProvider(e.target.value as Provider)}>
+              <div style={{gridColumn:'span 12', display:'grid', gridTemplateColumns:'repeat(4, minmax(0,1fr))', gap:12, marginTop:8}}>
+                <div>
+                  <span style={lbl}>Provedor</span>
+                  <select value={provider} onChange={(e)=> setProvider(e.target.value as Provider)} style={inputBase as any}>
                     <option value="amadeus">Amadeus (rota exata)</option>
                     <option value="tequila">Kiwi Tequila (anywhere)</option>
-                  </Select>
-                </Row>
-                <Row>
-                  <Label>Máx. escalas</Label>
-                  <Select value={String(maxStops)} onChange={(e)=> setMaxStops(parseInt(e.target.value))}>
+                  </select>
+                </div>
+                <div>
+                  <span style={lbl}>Máx. escalas</span>
+                  <select value={String(maxStops)} onChange={(e)=> setMaxStops(parseInt(e.target.value))} style={inputBase as any}>
                     <option value="0">Direto</option>
                     <option value="1">1</option>
                     <option value="2">2</option>
-                  </Select>
-                </Row>
-                <Row>
-                  <Label>Ordenar por</Label>
-                  <Select value={sortBy} onChange={(e)=> setSortBy(e.target.value as any)}>
+                  </select>
+                </div>
+                <div>
+                  <span style={lbl}>Ordenar por</span>
+                  <select value={sortBy} onChange={(e)=> setSortBy(e.target.value as any)} style={inputBase as any}>
                     <option value="price">Preço</option>
                     <option value="duration">Duração</option>
-                  </Select>
-                </Row>
+                  </select>
+                </div>
               </div>
             </form>
           </div>
-        </Box>
+        </div>
 
         {/* date matrix */}
-        <Box className="mb-5">
-          <div className="p-4 sm:p-5">
-            <div className="text-sm text-[#6b7280] mb-3">Datas próximas (±3 dias)</div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
+        <div style={{...card, marginBottom:16}}>
+          <div style={pad}>
+            <div style={{fontSize:13, color:'#6b7280', marginBottom:10}}>Datas próximas (±3 dias)</div>
+            <div style={{display:'grid', gridTemplateColumns:'repeat(7, minmax(0,1fr))', gap:8}}>
               {matrixDates.map(d => (
                 <button
                   key={d}
                   onClick={()=> setDate(d)}
-                  className={`rounded-xl border px-3 py-2 text-left ${d===date? 'border-[#2563eb] bg-[#eff6ff]':'border-[#e5e7eb] bg-white hover:bg-[#f9fafb]'}`}
+                  style={{
+                    border:'1px solid', borderColor: d===date ? '#2563eb' : '#e5e7eb',
+                    background: d===date ? '#eff6ff' : '#fff', borderRadius:12, padding:'8px 10px', textAlign:'left'
+                  }}
                 >
-                  <div className="text-xs text-[#6b7280]">
+                  <div style={{fontSize:12, color:'#6b7280'}}>
                     {new Date(d).toLocaleDateString('pt-BR', {weekday:'short', day:'2-digit', month:'2-digit'})}
                   </div>
-                  <div className="font-semibold">
-                    {/* fake preview price (client-side) just for the small matrix */}
+                  <div style={{fontWeight:600}}>
                     {fmtBRL(Math.round(1200 + (new Date(d).getDate()%7)*150))}
                   </div>
                 </button>
               ))}
             </div>
           </div>
-        </Box>
-
-        {/* results */}
-        <div className="flex items-center justify-between mb-2">
-          <div className="text-sm text-[#6b7280]">
-            {origin} → {anywhere?'Qualquer lugar':destination} • {new Date(date).toLocaleDateString('pt-BR')} • {adults} adulto(s)
-          </div>
-          <div className="text-xs text-[#6b7280]">Resultados: {results.length}</div>
         </div>
 
-        <Box>
-          <div className="p-4 sm:p-5">
-            {error && <div className="text-[#b91c1c] mb-3">Erro: {error}</div>}
+        {/* results */}
+        <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8}}>
+          <div style={{fontSize:13, color:'#6b7280'}}>
+            {origin} → {anywhere?'Qualquer lugar':destination} • {new Date(date).toLocaleDateString('pt-BR')} • {adults} adulto(s)
+          </div>
+          <div style={{fontSize:12, color:'#6b7280'}}>Resultados: {results.length}</div>
+        </div>
+
+        <div style={card}>
+          <div style={pad}>
+            {error && <div style={{color:'#b91c1c', marginBottom:12}}>Erro: {error}</div>}
 
             {loading ? (
-              <div className="grid gap-3">
+              <div style={{display:'grid', gap:12}}>
                 {Array.from({length:5}).map((_,i)=>
-                  <div key={i} className="animate-pulse h-20 rounded-xl bg-[#f3f4f6]" />
+                  <div key={i} style={{height:80, borderRadius:12, background:'#f3f4f6', animation:'pulse 1.5s ease-in-out infinite'}} />
                 )}
               </div>
             ) : results.length === 0 ? (
-              <div className="text-[#6b7280] text-center py-10">Sem ofertas (tente outra data, origem ou provedor).</div>
+              <div style={{color:'#6b7280', textAlign:'center', padding:'40px 0'}}>Sem ofertas (tente outra data, origem ou provedor).</div>
             ) : (
-              <div className="grid gap-3">
+              <div style={{display:'grid', gap:12}}>
                 {results.map((o:any)=>(
-                  <div key={o.id} className="rounded-2xl border border-[#e5e7eb] p-4 hover:shadow-sm transition">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div key={o.id} style={{border:'1px solid #e5e7eb', borderRadius:16, padding:16}}>
+                    <div style={{display:'flex', flexWrap:'wrap', justifyContent:'space-between', gap:12}}>
                       <div>
-                        <div className="font-semibold text-lg">{origin} → {o.dest}</div>
-                        <div className="text-xs text-[#6b7280]">
+                        <div style={{fontWeight:600, fontSize:18}}>{origin} → {o.dest}</div>
+                        <div style={{fontSize:12, color:'#6b7280'}}>
                           {(o.itineraries?.[0]?.segments||[]).map((s:any)=>
                             `${s.carrier}${s.flight} ${s.from}→${s.to}`
                           ).join(' · ')}
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold">{fmtBRL(o.total || 0)}</div>
-                        <div className="text-xs text-[#6b7280]">{o.bagIncluded ? '1ª mala incluída' : 'Somente mão'}</div>
+                      <div style={{textAlign:'right', minWidth:140}}>
+                        <div style={{fontSize:22, fontWeight:800}}>{fmtBRL(o.total || 0)}</div>
+                        <div style={{fontSize:12, color:'#6b7280'}}>{o.bagIncluded ? '1ª mala incluída' : 'Somente mão'}</div>
                       </div>
                     </div>
                   </div>
@@ -268,9 +259,9 @@ export default function Page() {
               </div>
             )}
           </div>
-        </Box>
+        </div>
 
-        <div className="text-xs text-[#6b7280] text-center mt-6">
+        <div style={{fontSize:12, color:'#6b7280', textAlign:'center', marginTop:20}}>
           Se aparecer vazio no modo Live, adicione as chaves na Vercel (Amadeus/Tequila) e teste o endpoint abrindo-o no navegador com parâmetros.
         </div>
       </div>
